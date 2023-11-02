@@ -1,5 +1,5 @@
 import { SHA256, Word32Array } from 'jscrypto';
-import * as secp256k1 from 'secp256k1';
+import * as secp256k1 from '@noble/secp256k1';
 import keccak256 from 'keccak256';
 import { Wallet } from 'ethers';
 import * as BytesUtils from '@ethersproject/bytes';
@@ -16,10 +16,7 @@ export class RawKey extends Key {
   public privateKey: Buffer;
 
   constructor(privateKey: Buffer, private isInjective?: boolean) {
-    const publicKey = secp256k1.publicKeyCreate(
-      new Uint8Array(privateKey),
-      true
-    );
+    const publicKey = secp256k1.getPublicKey(new Uint8Array(privateKey), true);
     super(
       isInjective
         ? new InjectivePubKey(Buffer.from(publicKey).toString('base64'))
@@ -33,10 +30,14 @@ export class RawKey extends Key {
       SHA256.hash(new Word32Array(payload)).toString(),
       'hex'
     );
-    return secp256k1.ecdsaSign(
+    const sig = secp256k1.sign(
       Uint8Array.from(hash),
       Uint8Array.from(this.privateKey)
     );
+    return {
+      signature: sig.toCompactRawBytes(),
+      recid: sig.recovery!,
+    };
   }
 
   public etherSign(payload: Buffer): { signature: Uint8Array } {

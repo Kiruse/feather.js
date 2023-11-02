@@ -5,7 +5,7 @@ import { Any } from '@terra-money/terra.proto/google/protobuf/any';
 import { PubKey as PubKey_pb } from '@terra-money/terra.proto/cosmos/crypto/secp256k1/keys';
 import { PubKey as ValConsPubKey_pb } from '@terra-money/terra.proto/cosmos/crypto/ed25519/keys';
 import { bech32 } from 'bech32';
-import { publicKeyConvert } from 'secp256k1';
+import { ProjectivePoint } from '@noble/secp256k1';
 import { keccak256 } from 'ethers/lib/utils';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
@@ -254,7 +254,7 @@ export class InjectivePubKey extends JSONSerializable<
     );
 
     const decompressedPublicKey = Buffer.from(
-      publicKeyConvert(fixedPubKey, false)
+      ProjectivePoint.fromHex(fixedPubKey).toRawBytes(false)
     ).toString('hex');
 
     const addressBuffer = Buffer.from(
